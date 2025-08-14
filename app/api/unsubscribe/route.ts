@@ -1,12 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from 'next/server';
-import { verifyUnsub } from '../../../lib/crypto'; // relative import to avoid alias issues
+import { headers } from 'next/headers';
+import { verifyUnsub } from '../../../lib/crypto';
+import { rateLimit } from '../../../lib/rateLimit';
+import { logJSON, sha256 } from '../../../lib/log';
 
-// Simple GET so we can still poke the route in a browser if needed
-export async function GET() {
-  return new NextResponse('UNSUB GET OK', { status: 200 });
-}
-
-// RFC 8058 one-click: POST with no body. All params in the URL.
 export async function POST(req: Request) {
   try {
     const url = new URL(req.url);
@@ -17,22 +15,37 @@ export async function POST(req: Request) {
     const ts = Number(tsStr);
     const secret = process.env.UNSUBSCRIBE_SECRET || '';
 
+    // rate limit by IP + route
+    const h = headers();
+    const ip = (h.get('x-real-ip') || h.get('x-forwarded-for') || 'unknown').split(',')[0].trim();
+    const rl = rateLimit(`unsub:${ip}`);
+    if (!rl.ok) {
+      return new NextResponse('Too Many Requests', {
+        status: 429,
+        headers: { 'Retry-After': String(rl.retryAfterSec) },
+      });
+    }
+
     if (!email || !ts || !sig || !secret) {
+      logJSON('unsub_bad_request', { ip, emailHash: email ? sha256(email) : null, listId });
       return new NextResponse('Bad Request', { status: 400 });
     }
 
     const ok = verifyUnsub(email, listId, ts, sig, secret);
     if (!ok) {
+      logJSON('unsub_invalid_sig', { ip, emailHash: sha256(email), listId, ts });
       return new NextResponse('Invalid signature', { status: 401 });
     }
 
-    // TODO: record the unsubscribe (hash + listId) in your DB.
-    // For MVP we just acknowledge per RFC 8058 with a 200 OK.
+    // TODO: record unsubscribe in a DB (future step)
+    logJSON('unsub_ok', { ip, emailHash: sha256(email), listId });
+
     return new NextResponse('OK', {
       status: 200,
       headers: { 'Content-Type': 'text/plain' },
     });
-  } catch {
+  } catch (e: any) {
+    console.error('unsub_error', e?.message || e);
     return new NextResponse('Server error', { status: 500 });
   }
 }
