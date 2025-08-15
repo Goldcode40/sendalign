@@ -30,6 +30,9 @@ export default function WaitlistForm() {
       });
 
       if (res.ok) {
+        if (typeof window !== "undefined" && (window as any).plausible) {
+        (window as any).plausible("join_waitlist", { props: { source: "hero" } });
+        }
         router.push("/success");
         return;
       }
