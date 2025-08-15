@@ -2,9 +2,17 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import Plausible from 'plausible-tracker';
 import Image from 'next/image';
 import WaitlistForm from "../components/WaitlistForm";
 import SocialProof from "../components/SocialProof";
+const { trackEvent } = Plausible({
+  domain: 'sendalign.vercel.app'
+});
+onClick={() => {
+  trackEvent('join_waitlist');
+  // existing join waitlist logic here
+}}
 
 /* ---------------- Types ---------------- */
 type CheckResult = {
