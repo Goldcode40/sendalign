@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import WaitlistForm from "../components/WaitlistForm";
 
 /* ---------------- Types ---------------- */
 type CheckResult = {
@@ -96,7 +97,7 @@ export default function Home() {
     </div>
   );
 
-  // Suggested DNS (SPF/DMARC) — unchanged from prior step
+  // Suggested DNS (SPF/DMARC)
   const suggestions = useMemo(() => {
     if (!result) return null;
     const name = result.domain;
@@ -136,9 +137,14 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto p-6 space-y-8">
-        <header>
+        <header className="text-center">
           <h1 className="text-3xl font-bold mb-1">SendAlign</h1>
           <p className="text-gray-600">Get to inbox. Stay compliant.</p>
+
+          {/* Waitlist form under the hero */}
+          <div className="mt-5 flex justify-center">
+            <WaitlistForm />
+          </div>
         </header>
 
         {/* Domain Checker */}
@@ -275,7 +281,7 @@ export default function Home() {
 
         {/* Unsubscribe Header Generator */}
         <section>
-          <h2 className="text-xl font-semibold mb-3">One‑Click Unsubscribe (RFC 8058) Generator</h2>
+          <h2 className="text-xl font-semibold mb-3">One-Click Unsubscribe (RFC 8058) Generator</h2>
           <form onSubmit={handleGenerate} className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
             <input
               type="email"
@@ -305,7 +311,7 @@ export default function Home() {
 
           {genOut && (
             <div className="space-y-3">
-              <Section title="One‑click URL">
+              <Section title="One-click URL">
                 <div className="flex items-center gap-2">
                   <code className="bg-gray-100 px-2 py-1 rounded break-all">{genOut.url}</code>
                   <CopyBtn id="url" text={genOut.url} />
@@ -329,7 +335,7 @@ export default function Home() {
                   <CopyBtn id="h2" text={`List-Unsubscribe-Post: List-Unsubscribe=One-Click`} />
                 </div>
                 <div className="text-xs text-gray-600 mt-2">
-                  Add both headers to promotional/commercial email to meet Gmail/Yahoo bulk‑sender rules.
+                  Add both headers to promotional/commercial email to meet Gmail/Yahoo bulk-sender rules.
                 </div>
               </Section>
             </div>
