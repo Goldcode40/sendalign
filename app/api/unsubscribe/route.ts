@@ -1,51 +1,50 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
-import { verifyUnsub } from '../../../lib/crypto';
-import { rateLimit } from '../../../lib/rateLimit';
-import { logJSON, sha256 } from '../../../lib/log';
+// app/api/unsubscribe/route.ts
+import { NextResponse } from "next/server";
+import crypto from "crypto";
 
-export async function POST(req: Request) {
+function verifySig(email: string, list: string, t: string, sig: string) {
+  const secret = process.env.UNSUBSCRIBE_SECRET || "dev-secret";
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(`${email}:${list}:${t}`)
+    .digest("hex");
+
+  // timing-safe compare
   try {
-    const url = new URL(req.url);
-    const email = (url.searchParams.get('email') || '').toLowerCase();
-    const listId = url.searchParams.get('list') || 'default';
-    const tsStr = url.searchParams.get('t') || '';
-    const sig = url.searchParams.get('sig') || '';
-    const ts = Number(tsStr);
-    const secret = process.env.UNSUBSCRIBE_SECRET || '';
-
-    // rate limit by IP + route
-    const h = headers();
-    const ip = (h.get('x-real-ip') || h.get('x-forwarded-for') || 'unknown').split(',')[0].trim();
-    const rl = rateLimit(`unsub:${ip}`);
-    if (!rl.ok) {
-      return new NextResponse('Too Many Requests', {
-        status: 429,
-        headers: { 'Retry-After': String(rl.retryAfterSec) },
-      });
-    }
-
-    if (!email || !ts || !sig || !secret) {
-      logJSON('unsub_bad_request', { ip, emailHash: email ? sha256(email) : null, listId });
-      return new NextResponse('Bad Request', { status: 400 });
-    }
-
-    const ok = verifyUnsub(email, listId, ts, sig, secret);
-    if (!ok) {
-      logJSON('unsub_invalid_sig', { ip, emailHash: sha256(email), listId, ts });
-      return new NextResponse('Invalid signature', { status: 401 });
-    }
-
-    // TODO: record unsubscribe in a DB (future step)
-    logJSON('unsub_ok', { ip, emailHash: sha256(email), listId });
-
-    return new NextResponse('OK', {
-      status: 200,
-      headers: { 'Content-Type': 'text/plain' },
-    });
-  } catch (e: any) {
-    console.error('unsub_error', e?.message || e);
-    return new NextResponse('Server error', { status: 500 });
+    return crypto.timingSafeEqual(
+      Buffer.from(sig, "hex"),
+      Buffer.from(expected, "hex")
+    );
+  } catch {
+    return false;
   }
 }
+
+async function handler(req: Request) {
+  const url = new URL(req.url);
+  const email = url.searchParams.get("email") || "";
+  const list = url.searchParams.get("list") || "main";
+  const t = url.searchParams.get("t") || "";
+  const sig = url.searchParams.get("sig") || "";
+
+  if (!email || !sig || !t) {
+    return NextResponse.json({ error: "Missing parameters." }, { status: 400 });
+  }
+
+  // optional: check timestamp freshness (e.g., 7 days)
+  const maxAgeMs = 7 * 24 * 60 * 60 * 1000;
+  if (Date.now() - Number(t) > maxAgeMs) {
+    return NextResponse.json({ error: "Link expired." }, { status: 410 });
+  }
+
+  if (!verifySig(email, list, t, sig)) {
+    return NextResponse.json({ error: "Invalid signature." }, { status: 401 });
+  }
+
+  // TODO: call your ESP to unsubscribe here if desired.
+  // For now, just acknowledge.
+  return NextResponse.json({ ok: true });
+}
+
+export const POST = handler; // supports POST …/api/unsubscribe?email=…&list=…&t=…&sig=…
+export const GET = handler;  // (optional) also allow GET for browser clicks
