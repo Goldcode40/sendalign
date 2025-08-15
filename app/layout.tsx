@@ -1,19 +1,13 @@
-// app/layout.tsx
-import "./globals.css";
+/* app/layout.tsx */
 import type { Metadata } from "next";
-import Analytics from "../components/Analytics";
-
-<head>
-  <script
-    defer
-    data-domain="sendalign.vercel.app"
-    src="https://plausible.io/js/script.js"
-  ></script>
-</head>
+import React from "react";
+// Keep or adjust this import to match your stylesheet setup
+import "./globals.css";
+import PlausibleScript from "../components/PlausibleScript";
 
 export const metadata: Metadata = {
   title: "SendAlign",
-  description: "Align your outbound sends automatically.",
+  description: "Get to inbox. Stay compliant.",
 };
 
 export default function RootLayout({
@@ -23,10 +17,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        {children}
-        <Analytics />
-      </body>
+      <head>
+        {/* Loads window.plausible globally */}
+        <PlausibleScript />
+      </head>
+      <body className="antialiased bg-white">{children}</body>
     </html>
   );
 }
