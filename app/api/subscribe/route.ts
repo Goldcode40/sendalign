@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 type Body = { email?: string; list?: string };
 
 function isValidEmail(email: string) {
-  // Simple RFC5322-ish check
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
@@ -31,84 +30,82 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1) Try to create/update subscriber and attach to group in one go
-    // MailerLite v2 will create (or upsert) and assign groups when provided.
+    // Helper for ML fetch
+    const MLHeaders = {
+      Authorization: `Bearer ${API_KEY}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    };
+
+    // 1) Look up existing subscriber by email
+    const searchRes = await fetch(
+      `${ML_API}/subscribers?filter[email]=${encodeURIComponent(email)}`,
+      { headers: { Authorization: `Bearer ${API_KEY}`, Accept: "application/json" } }
+    );
+
+    let subscriberId: string | null = null;
+    if (searchRes.ok) {
+      const searchJson = (await searchRes.json()) as { data?: Array<{ id: string }> };
+      subscriberId = searchJson?.data?.[0]?.id ?? null;
+    }
+
+    // 2) If subscriber already exists, try to remove them from the group first
+    //    (so "joins group" will re-trigger on add)
+    if (subscriberId) {
+      // Best-effort detach; ignore errors quietly so flow continues
+      await fetch(`${ML_API}/subscribers/${subscriberId}/groups/${GROUP_ID}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${API_KEY}`, Accept: "application/json" },
+      }).catch(() => {});
+    }
+
+    // 3) Create (or upsert) subscriber and assign the group — this should fire the automation
     const createRes = await fetch(`${ML_API}/subscribers`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${API_KEY}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        groups: [GROUP_ID],
-      }),
-      // Optional: set a short timeout by race, omitted here for simplicity
+      headers: MLHeaders,
+      body: JSON.stringify({ email, groups: [GROUP_ID] }),
     });
 
     if (createRes.ok) {
       return NextResponse.json({ ok: true }, { status: 200 });
     }
 
-    // If create failed (e.g., already exists), try to fetch by email and ensure group membership.
-    // Some tenants receive 409/422 for existing subscribers—handle gracefully.
+    // 4) If API says “already exists”, ensure group assignment happens (re-attach)
     if (createRes.status === 409 || createRes.status === 422) {
-      // 2) Lookup existing subscriber by email
-      const searchRes = await fetch(
-        `${ML_API}/subscribers?filter[email]=${encodeURIComponent(email)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${API_KEY}`,
-            Accept: "application/json",
-          },
+      if (!subscriberId) {
+        // Re-fetch id if we didn’t get it earlier
+        const refetch = await fetch(
+          `${ML_API}/subscribers?filter[email]=${encodeURIComponent(email)}`,
+          { headers: { Authorization: `Bearer ${API_KEY}`, Accept: "application/json" } }
+        );
+        if (refetch.ok) {
+          const j = (await refetch.json()) as { data?: Array<{ id: string }> };
+          subscriberId = j?.data?.[0]?.id ?? null;
         }
-      );
+      }
 
-      if (!searchRes.ok) {
-        const t = await safeText(searchRes);
+      if (subscriberId) {
+        const attachRes = await fetch(`${ML_API}/subscribers/${subscriberId}/groups`, {
+          method: "POST",
+          headers: MLHeaders,
+          body: JSON.stringify({ groups: [GROUP_ID] }),
+        });
+
+        if (attachRes.ok) {
+          return NextResponse.json({ ok: true }, { status: 200 });
+        }
+
+        const t = await safeText(attachRes);
         return NextResponse.json(
-          { error: "Could not verify subscriber.", details: t },
+          { error: "Could not add subscriber to group.", details: t || undefined },
           { status: 502 }
         );
       }
 
-      const searchJson = (await searchRes.json()) as {
-        data?: Array<{ id: string }>;
-      };
-
-      const subscriberId = searchJson?.data?.[0]?.id;
-      if (!subscriberId) {
-        // If we can’t find them but creation said conflict, treat as soft success anyway
-        return NextResponse.json({ ok: true }, { status: 200 });
-      }
-
-      // 3) Ensure they’re in the group
-      const attachRes = await fetch(
-        `${ML_API}/subscribers/${subscriberId}/groups`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${API_KEY}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({ groups: [GROUP_ID] }),
-        }
-      );
-
-      if (attachRes.ok) {
-        return NextResponse.json({ ok: true }, { status: 200 });
-      }
-
-      const attachErr = await safeText(attachRes);
-      return NextResponse.json(
-        { error: "Could not add subscriber to group.", details: attachErr },
-        { status: 502 }
-      );
+      // If we still can’t find them, treat as soft success
+      return NextResponse.json({ ok: true }, { status: 200 });
     }
 
-    // Other errors — forward a concise message
     const errText = await safeText(createRes);
     return NextResponse.json(
       { error: "Subscription failed.", details: errText || undefined },
