@@ -20,11 +20,10 @@ export async function POST(req: Request) {
     const msg = `${email.toLowerCase()}|${listId}|${ts}`;
     const sig = crypto.createHmac('sha256', secret).update(msg).digest('hex');
 
-    // ✅ Build origin from request headers (works on Vercel / any host)
-    const h = headers();
-    const proto = h.get('x-forwarded-proto') ?? 'https';
-    const host  = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
-    const origin = `${proto}://${host}`;
+    // Build origin from the request URL (fallback to env if present)
+    const envOrigin = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
+    const reqOrigin = new URL(req.url).origin;
+    const origin = envOrigin || reqOrigin;
 
     const url = new URL('/api/unsubscribe', origin);
     url.searchParams.set('email', email.toLowerCase());
