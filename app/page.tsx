@@ -136,17 +136,69 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto p-6 space-y-8">
-        <header className="text-center">
-          <h1 className="text-3xl font-bold mb-1">SendAlign</h1>
-          <p className="text-gray-600">Get to inbox. Stay compliant.</p>
-
-          {/* Waitlist form under the hero */}
-          <div className="mt-5 flex justify-center">
-            <WaitlistForm />
+      {/* HERO */}
+      <section className="relative">
+        <div className="max-w-6xl mx-auto px-6 pt-10 pb-8">
+          {/* Top bar: logo */}
+          <div className="flex items-center gap-2">
+            {/* Simple text logo (swap later with an SVG/PNG if you like) */}
+            <div className="inline-flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg border flex items-center justify-center">
+                <span className="text-lg">✉️</span>
+              </div>
+              <span className="text-xl font-semibold tracking-tight">SendAlign</span>
+            </div>
           </div>
-        </header>
 
+          {/* Hero grid */}
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 items-center">
+            {/* Left: copy + form */}
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-gray-700">
+                <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+                Built-in deliverability tools
+              </div>
+
+              <h1 className="mt-4 text-4xl md:text-5xl font-bold tracking-tight">
+                Get to inbox. <span className="text-gray-500">Stay compliant.</span>
+              </h1>
+
+              <p className="mt-3 text-gray-600 max-w-prose">
+                SendAlign helps you align SPF, DKIM, and DMARC, generate one-click unsubscribe links,
+                and pass Gmail/Yahoo bulk-sender checks — without the guesswork.
+              </p>
+
+              <div className="mt-6">
+                <WaitlistForm />
+                <p className="mt-2 text-xs text-gray-500">
+                  Join the waitlist for early access and launch updates.
+                </p>
+              </div>
+            </div>
+
+            {/* Right: mockup placeholder */}
+            <div className="relative">
+              <div className="aspect-[16/10] w-full rounded-xl border overflow-hidden">
+                <div className="h-full w-full bg-gradient-to-br from-gray-50 to-gray-100 grid place-items-center">
+                  <div className="text-center">
+                    <div className="mx-auto h-14 w-14 rounded-xl border grid place-items-center mb-3">
+                      <span className="text-2xl">📊</span>
+                    </div>
+                    <p className="text-sm text-gray-600">Dashboard mockup placeholder</p>
+                    <p className="text-xs text-gray-400">Replace with real screenshots later</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Small divider */}
+          <div className="mt-10 border-t" />
+        </div>
+      </section>
+
+      {/* MAIN CONTENT */}
+      <div className="max-w-6xl mx-auto p-6 space-y-10">
         {/* Domain Checker */}
         <section>
           <h2 className="text-xl font-semibold mb-3">Domain Compliance Check</h2>
@@ -158,7 +210,7 @@ export default function Home() {
               onChange={(e) => setDomain(e.target.value.trim())}
               className="flex-1 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black"
               required
-              pattern="^[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
+              pattern="^[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
               title="Enter a valid domain, e.g., example.com"
             />
             <button
