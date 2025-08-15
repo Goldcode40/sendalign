@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import Image from 'next/image';
 import WaitlistForm from "../components/WaitlistForm";
 
 /* ---------------- Types ---------------- */
@@ -141,7 +142,6 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 pt-10 pb-8">
           {/* Top bar: logo */}
           <div className="flex items-center gap-2">
-            {/* Simple text logo (swap later with an SVG/PNG if you like) */}
             <div className="inline-flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg border flex items-center justify-center">
                 <span className="text-lg">✉️</span>
@@ -176,18 +176,17 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right: mockup placeholder */}
+            {/* Right: mockup image */}
             <div className="relative">
-              <div className="aspect-[16/10] w-full rounded-xl border overflow-hidden">
-                <div className="h-full w-full bg-gradient-to-br from-gray-50 to-gray-100 grid place-items-center">
-                  <div className="text-center">
-                    <div className="mx-auto h-14 w-14 rounded-xl border grid place-items-center mb-3">
-                      <span className="text-2xl">📊</span>
-                    </div>
-                    <p className="text-sm text-gray-600">Dashboard mockup placeholder</p>
-                    <p className="text-xs text-gray-400">Replace with real screenshots later</p>
-                  </div>
-                </div>
+              <div className="aspect-[16/10] w-full rounded-xl border overflow-hidden bg-gray-50">
+                <Image
+                  src="/mockups/dashboard.png"
+                  alt="SendAlign dashboard preview"
+                  fill
+                  className="object-cover"
+                  sizes="(min-width: 768px) 50vw, 100vw"
+                  priority
+                />
               </div>
             </div>
           </div>
