@@ -1,44 +1,55 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextResponse } from 'next/server';
-import crypto from 'crypto';
-import { headers } from 'next/headers';
+// app/api/generate-unsub/route.ts
+import { NextResponse } from "next/server";
+import crypto from "crypto";
+
+type Body = { email?: string; list?: string };
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
 export async function POST(req: Request) {
   try {
-    const { email, list = 'default' } = await req.json();
-    const secret = process.env.UNSUBSCRIBE_SECRET || '';
+    const { email, list = "main" }: Body = await req.json().catch(() => ({}));
 
-    if (!secret) {
-      return NextResponse.json({ error: 'Server missing UNSUBSCRIBE_SECRET' }, { status: 500 });
+    if (!email || !isValidEmail(email)) {
+      return NextResponse.json(
+        { error: "Please provide a valid email address." },
+        { status: 400 }
+      );
     }
-    if (!email || typeof email !== 'string') {
-      return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
-    }
-    const listId = typeof list === 'string' ? list : 'default';
 
-    const ts = Date.now();
-    const msg = `${email.toLowerCase()}|${listId}|${ts}`;
-    const sig = crypto.createHmac('sha256', secret).update(msg).digest('hex');
-
-    // Build origin from the request URL (fallback to env if present)
+    // Build origin without next/headers (fixes TS build issue)
     const envOrigin = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
     const reqOrigin = new URL(req.url).origin;
     const origin = envOrigin || reqOrigin;
 
-    const url = new URL('/api/unsubscribe', origin);
-    url.searchParams.set('email', email.toLowerCase());
-    url.searchParams.set('list', listId);
-    url.searchParams.set('t', String(ts));
-    url.searchParams.set('sig', sig);
+    // Signed one-click unsubscribe URL
+    const t = Date.now().toString();
+    const secret = process.env.UNSUBSCRIBE_SECRET || "dev-secret";
+    const sig = crypto
+      .createHmac("sha256", secret)
+      .update(`${email}:${list}:${t}`)
+      .digest("hex");
+
+    const url =
+      `${origin}/api/unsubscribe` +
+      `?email=${encodeURIComponent(email)}` +
+      `&list=${encodeURIComponent(list)}` +
+      `&t=${t}` +
+      `&sig=${sig}`;
 
     return NextResponse.json({
-      url: url.toString(),
+      url,
       headers: {
-        'List-Unsubscribe': `<${url.toString()}>`,
-        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        "List-Unsubscribe": `<${url}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
       },
     });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Unexpected server error.", details: String(e?.message || e) },
+      { status: 500 }
+    );
   }
 }
