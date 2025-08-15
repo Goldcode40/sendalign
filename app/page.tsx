@@ -4,6 +4,7 @@
 import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
 import WaitlistForm from "../components/WaitlistForm";
+import SocialProof from "../components/SocialProof";
 
 /* ---------------- Types ---------------- */
 type CheckResult = {
@@ -193,6 +194,7 @@ export default function Home() {
 
           {/* Small divider */}
           <div className="mt-10 border-t" />
+          <SocialProof />
         </div>
       </section>
 
