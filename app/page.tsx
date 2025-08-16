@@ -105,8 +105,8 @@ export default function HomePage() {
             <p style={{ fontSize: "18px", color: "var(--muted, #555)", margin: "0 auto 28px", maxWidth: 760 }}>
               <strong>SendAlign</strong> is a deliverability & compliance copilot that audits and fixes
               <strong> SPF</strong>, <strong>DKIM</strong>, and <strong>DMARC</strong>, adds
-              RFC-8058 one-click unsubscribe, and monitors Gmail/Yahoo spam thresholds so you stay
-              under <strong>0.3%</strong>.
+              RFC-8058 one-click unsubscribe, and monitors Gmail/Yahoo spam-rate thresholds so you
+              stay under <strong>0.3%</strong>.
             </p>
 
             <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
@@ -127,7 +127,7 @@ export default function HomePage() {
             <div style={{ marginTop: 36 }}>
               <img
                 src="/dashboard-mock.png"
-                alt="SendAlign compliance dashboard: SPF/DKIM/DMARC checks and spam-rate monitoring"
+                alt="SendAlign compliance dashboard: SPF/DKIM/DMARC checks, one-click unsubscribe, and spam-rate monitoring"
                 style={{ width: "100%", maxWidth: 960, height: "auto", borderRadius: 12, border: "1px solid #eee", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
               />
             </div>
@@ -164,7 +164,7 @@ export default function HomePage() {
         <div className="container" style={{ maxWidth: 980, margin: "0 auto", padding: "0 20px" }}>
           <h2 style={{ textAlign: "center", fontSize: 28, marginBottom: 22 }}>What early users say</h2>
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 16 }}>
-            <li style={quoteStyle}>“Setup took 10 minutes—DMARC finally aligned.”</li>
+            <li style={quoteStyle}>“Setup took 10 minutes — DMARC finally aligned.”</li>
             <li style={quoteStyle}>“Postmaster alerts caught a spike before it became a problem.”</li>
             <li style={quoteStyle}>“One-click unsubscribe was the missing piece for Gmail compliance.”</li>
           </ul>
