@@ -1,11 +1,12 @@
 // app/page.tsx
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import Script from "next/script";
 
-/* -------------------- Client Signup Box (no external JS) -------------------- */
+/* -------------------- Signup (no external ML JS) -------------------- */
 function SignupBox() {
-  "use client";
   const [email, setEmail] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
@@ -17,27 +18,18 @@ function SignupBox() {
   };
 
   const onIframeLoad = () => {
-    // This will fire after the POST returns.
+    // Fires after the POST to MailerLite returns
     if (submittedRef.current && !done) {
       setDone(true);
       setSubmitting(false);
-      // @ts-ignore
       if (typeof window !== "undefined" && (window as any).plausible) {
-        // @ts-ignore
         (window as any).plausible("join_waitlist");
       }
     }
   };
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        border: "1px solid #eee",
-        borderRadius: 12,
-        padding: 20,
-      }}
-    >
+    <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, padding: 20 }}>
       {done ? (
         <div
           role="status"
@@ -55,12 +47,8 @@ function SignupBox() {
         </div>
       ) : (
         <>
-          {/* Hidden iframe target to avoid page navigation */}
-          <iframe
-            name="ml_iframe"
-            style={{ display: "none" }}
-            onLoad={onIframeLoad}
-          />
+          {/* Hidden iframe target to avoid navigation */}
+          <iframe id="ml_iframe" name="ml_iframe" style={{ display: "none" }} onLoad={onIframeLoad} />
           <form
             action="https://assets.mailerlite.com/jsonp/1707319/forms/162292314122749781/subscribe"
             method="post"
@@ -124,10 +112,16 @@ export default function HomePage() {
             </p>
 
             <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
-              <a href="#join" style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #0000", fontWeight: 600, display: "inline-block" }}>
+              <a
+                href="#join"
+                style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #0000", fontWeight: 600, display: "inline-block" }}
+              >
                 Join the Waitlist →
               </a>
-              <a href="#how-it-works" style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #ddd", fontWeight: 600, display: "inline-block" }}>
+              <a
+                href="#how-it-works"
+                style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #ddd", fontWeight: 600, display: "inline-block" }}
+              >
                 How it works
               </a>
             </div>
@@ -167,7 +161,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* JOIN WAITLIST (No external JS) */}
+      {/* JOIN WAITLIST */}
       <section id="join" aria-label="Join the waitlist" style={{ padding: "56px 0", background: "var(--bg-subtle, #fafafa)" }}>
         <div className="container" style={{ maxWidth: 720, margin: "0 auto", padding: "0 20px" }}>
           <h2 style={{ textAlign: "center", fontSize: 28, marginBottom: 10 }}>Join the SendAlign waitlist</h2>
@@ -191,14 +185,13 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* Plausible (already in layout) — leaving here in case it’s not */}
+      {/* (If Plausible isn't already in layout) */}
       <Script defer data-domain="sendalign.vercel.app" src="https://plausible.io/js/script.tagged-events.js" />
     </main>
   );
 }
 
 /* ---------- helpers ---------- */
-
 function HowCard({ icon, title, text }: { icon: string; title: string; text: string }) {
   return (
     <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, padding: 18, display: "grid", gap: 8 }}>
