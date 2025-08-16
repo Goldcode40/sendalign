@@ -3,99 +3,98 @@
 
 import React from "react";
 import Link from "next/link";
-import Script from "next/script";
 
-/* -------------------- Signup (no external ML JS) -------------------- */
+/* -------------------- Signup (calls /api/subscribe) -------------------- */
 function SignupBox() {
   const [email, setEmail] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
-  const submittedRef = React.useRef(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const onSubmit = () => {
-    submittedRef.current = true;
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
     setSubmitting(true);
-  };
-
-  const onIframeLoad = () => {
-    // Fires after the POST to MailerLite returns
-    if (submittedRef.current && !done) {
+    try {
+      const res = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error || "Failed to subscribe");
+      }
       setDone(true);
-      setSubmitting(false);
+      // Fire Plausible only on confirmed success
       if (typeof window !== "undefined" && (window as any).plausible) {
         (window as any).plausible("join_waitlist");
       }
+    } catch (err: any) {
+      setError(err?.message || "Something went wrong");
+    } finally {
+      setSubmitting(false);
     }
-  };
+  }
+
+  if (done) {
+    return (
+      <div
+        role="status"
+        style={{
+          padding: "14px 16px",
+          borderRadius: 8,
+          border: "1px solid #d1fadf",
+          background: "#f0fff4",
+          color: "#14532d",
+          fontWeight: 600,
+          textAlign: "center",
+        }}
+      >
+        ✅ Thanks! You’re on the list. Please check your email.
+      </div>
+    );
+  }
 
   return (
-    <div style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, padding: 20 }}>
-      {done ? (
-        <div
-          role="status"
-          style={{
-            padding: "14px 16px",
-            borderRadius: 8,
-            border: "1px solid #d1fadf",
-            background: "#f0fff4",
-            color: "#14532d",
-            fontWeight: 600,
-            textAlign: "center",
-          }}
-        >
-          ✅ Thanks! You’re on the list. Please check your email.
-        </div>
-      ) : (
-        <>
-          {/* Hidden iframe target to avoid navigation */}
-          <iframe id="ml_iframe" name="ml_iframe" style={{ display: "none" }} onLoad={onIframeLoad} />
-          <form
-            action="https://assets.mailerlite.com/jsonp/1707319/forms/162292314122749781/subscribe"
-            method="post"
-            target="ml_iframe"
-            onSubmit={onSubmit}
-            style={{ display: "grid", gap: 12 }}
-          >
-            <input
-              type="email"
-              name="fields[email]"
-              required
-              autoComplete="email"
-              placeholder="you@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              aria-label="Email"
-              style={{
-                width: "100%",
-                borderRadius: 8,
-                border: "1px solid #ddd",
-                padding: "12px 14px",
-                fontSize: 16,
-              }}
-            />
-            <button
-              type="submit"
-              disabled={submitting}
-              style={{
-                padding: "12px 16px",
-                borderRadius: 8,
-                border: "1px solid #0000",
-                fontWeight: 700,
-                cursor: submitting ? "not-allowed" : "pointer",
-                opacity: submitting ? 0.7 : 1,
-              }}
-            >
-              {submitting ? "Submitting…" : "Join the Waitlist"}
-            </button>
-          </form>
-        </>
-      )}
-    </div>
+    <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12 }}>
+      <input
+        type="email"
+        name="email"
+        required
+        autoComplete="email"
+        placeholder="you@company.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        aria-label="Email"
+        style={{
+          width: "100%",
+          borderRadius: 8,
+          border: "1px solid #ddd",
+          padding: "12px 14px",
+          fontSize: 16,
+        }}
+      />
+      <button
+        type="submit"
+        disabled={submitting}
+        style={{
+          padding: "12px 16px",
+          borderRadius: 8,
+          border: "1px solid #0000",
+          fontWeight: 700,
+          cursor: submitting ? "not-allowed" : "pointer",
+          opacity: submitting ? 0.7 : 1,
+        }}
+      >
+        {submitting ? "Submitting…" : "Join the Waitlist"}
+      </button>
+      {error && <div style={{ color: "#b91c1c", fontSize: 14 }}>{error}</div>}
+    </form>
   );
 }
 
 /* ------------------------------- Page ------------------------------- */
-
 export default function HomePage() {
   return (
     <main>
@@ -114,13 +113,27 @@ export default function HomePage() {
             <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
               <a
                 href="#join"
-                style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #0000", fontWeight: 600, display: "inline-block" }}
+                style={{
+                  padding: "12px 18px",
+                  borderRadius: 8,
+                  textDecoration: "none",
+                  border: "1px solid #0000",
+                  fontWeight: 600,
+                  display: "inline-block",
+                }}
               >
                 Join the Waitlist →
               </a>
               <a
                 href="#how-it-works"
-                style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #ddd", fontWeight: 600, display: "inline-block" }}
+                style={{
+                  padding: "12px 18px",
+                  borderRadius: 8,
+                  textDecoration: "none",
+                  border: "1px solid #ddd",
+                  fontWeight: 600,
+                  display: "inline-block",
+                }}
               >
                 How it works
               </a>
@@ -130,7 +143,14 @@ export default function HomePage() {
               <img
                 src="/dashboard-mock.png"
                 alt="SendAlign dashboard mockup"
-                style={{ width: "100%", maxWidth: 960, height: "auto", borderRadius: 12, border: "1px solid #eee", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
+                style={{
+                  width: "100%",
+                  maxWidth: 960,
+                  height: "auto",
+                  borderRadius: 12,
+                  border: "1px solid #eee",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                }}
               />
             </div>
           </div>
@@ -184,9 +204,6 @@ export default function HomePage() {
           © {new Date().getFullYear()} SendAlign. All rights reserved.
         </div>
       </footer>
-
-      {/* (If Plausible isn't already in layout) */}
-      <Script defer data-domain="sendalign.vercel.app" src="https://plausible.io/js/script.tagged-events.js" />
     </main>
   );
 }
