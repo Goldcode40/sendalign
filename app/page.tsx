@@ -3,6 +3,111 @@ import React from "react";
 import Link from "next/link";
 import Script from "next/script";
 
+/* -------------------- Client Signup Box (no external JS) -------------------- */
+function SignupBox() {
+  "use client";
+  const [email, setEmail] = React.useState("");
+  const [submitting, setSubmitting] = React.useState(false);
+  const [done, setDone] = React.useState(false);
+  const submittedRef = React.useRef(false);
+
+  const onSubmit = () => {
+    submittedRef.current = true;
+    setSubmitting(true);
+  };
+
+  const onIframeLoad = () => {
+    // This will fire after the POST returns.
+    if (submittedRef.current && !done) {
+      setDone(true);
+      setSubmitting(false);
+      // @ts-ignore
+      if (typeof window !== "undefined" && (window as any).plausible) {
+        // @ts-ignore
+        (window as any).plausible("join_waitlist");
+      }
+    }
+  };
+
+  return (
+    <div
+      style={{
+        background: "#fff",
+        border: "1px solid #eee",
+        borderRadius: 12,
+        padding: 20,
+      }}
+    >
+      {done ? (
+        <div
+          role="status"
+          style={{
+            padding: "14px 16px",
+            borderRadius: 8,
+            border: "1px solid #d1fadf",
+            background: "#f0fff4",
+            color: "#14532d",
+            fontWeight: 600,
+            textAlign: "center",
+          }}
+        >
+          ✅ Thanks! You’re on the list. Please check your email.
+        </div>
+      ) : (
+        <>
+          {/* Hidden iframe target to avoid page navigation */}
+          <iframe
+            name="ml_iframe"
+            style={{ display: "none" }}
+            onLoad={onIframeLoad}
+          />
+          <form
+            action="https://assets.mailerlite.com/jsonp/1707319/forms/162292314122749781/subscribe"
+            method="post"
+            target="ml_iframe"
+            onSubmit={onSubmit}
+            style={{ display: "grid", gap: 12 }}
+          >
+            <input
+              type="email"
+              name="fields[email]"
+              required
+              autoComplete="email"
+              placeholder="you@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              aria-label="Email"
+              style={{
+                width: "100%",
+                borderRadius: 8,
+                border: "1px solid #ddd",
+                padding: "12px 14px",
+                fontSize: 16,
+              }}
+            />
+            <button
+              type="submit"
+              disabled={submitting}
+              style={{
+                padding: "12px 16px",
+                borderRadius: 8,
+                border: "1px solid #0000",
+                fontWeight: 700,
+                cursor: submitting ? "not-allowed" : "pointer",
+                opacity: submitting ? 0.7 : 1,
+              }}
+            >
+              {submitting ? "Submitting…" : "Join the Waitlist"}
+            </button>
+          </form>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------- Page ------------------------------- */
+
 export default function HomePage() {
   return (
     <main>
@@ -14,13 +119,17 @@ export default function HomePage() {
               Your inbox deserves order, not chaos.
             </h1>
             <p style={{ fontSize: "18px", color: "var(--muted, #555)", margin: "0 auto 28px", maxWidth: 720 }}>
-              <strong>SendAlign</strong> keeps team email clear, synced, and on-track — no duplicate replies, no lost threads,
-              and built-in analytics to keep everyone aligned.
+              <strong>SendAlign</strong> keeps team email clear, synced, and on-track — no duplicate replies,
+              no lost threads, and built-in analytics to keep everyone aligned.
             </p>
 
             <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
-              <a href="#join" style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #0000", fontWeight: 600, display: "inline-block" }}>Join the Waitlist →</a>
-              <a href="#how-it-works" style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #ddd", fontWeight: 600, display: "inline-block" }}>How it works</a>
+              <a href="#join" style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #0000", fontWeight: 600, display: "inline-block" }}>
+                Join the Waitlist →
+              </a>
+              <a href="#how-it-works" style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #ddd", fontWeight: 600, display: "inline-block" }}>
+                How it works
+              </a>
             </div>
 
             <div style={{ marginTop: 36 }}>
@@ -58,7 +167,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* JOIN WAITLIST — MailerLite Universal Embed (with proper init) */}
+      {/* JOIN WAITLIST (No external JS) */}
       <section id="join" aria-label="Join the waitlist" style={{ padding: "56px 0", background: "var(--bg-subtle, #fafafa)" }}>
         <div className="container" style={{ maxWidth: 720, margin: "0 auto", padding: "0 20px" }}>
           <h2 style={{ textAlign: "center", fontSize: 28, marginBottom: 10 }}>Join the SendAlign waitlist</h2>
@@ -66,26 +175,7 @@ export default function HomePage() {
             Be first in line for early access and help shape the roadmap.
           </p>
 
-          <div id="ml-embed" style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, padding: 20 }}>
-            {/* MailerLite will auto-inject the form into this container */}
-            <div className="ml-embedded" data-form="162292314122749781"></div>
-          </div>
-
-          {/* Load Universal script */}
-          <Script src="https://assets.mailerlite.com/js/universal.js" strategy="afterInteractive" />
-          {/* Initialize with your Site ID */}
-          <Script id="ml-init" strategy="afterInteractive">
-            {`window.ml = window.ml || function(){(ml.q=ml.q||[]).push(arguments)}; ml('account','1707319');`}
-          </Script>
-
-          {/* Plausible bridge for MailerLite success (two event names for safety) */}
-          <Script id="ml-plausible-bridge" strategy="afterInteractive">
-            {`
-              function sendPlausible(){ if(window.plausible){ window.plausible('join_waitlist'); } }
-              window.addEventListener('ml_webform_success', sendPlausible);
-              window.addEventListener('ml_form_success', sendPlausible);
-            `}
-          </Script>
+          <SignupBox />
         </div>
       </section>
 
@@ -100,6 +190,9 @@ export default function HomePage() {
           © {new Date().getFullYear()} SendAlign. All rights reserved.
         </div>
       </footer>
+
+      {/* Plausible (already in layout) — leaving here in case it’s not */}
+      <Script defer data-domain="sendalign.vercel.app" src="https://plausible.io/js/script.tagged-events.js" />
     </main>
   );
 }
