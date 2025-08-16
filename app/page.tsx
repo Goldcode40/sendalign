@@ -14,23 +14,13 @@ export default function HomePage() {
               Your inbox deserves order, not chaos.
             </h1>
             <p style={{ fontSize: "18px", color: "var(--muted, #555)", margin: "0 auto 28px", maxWidth: 720 }}>
-              <strong>SendAlign</strong> keeps team email clear, synced, and on-track — no duplicate
-              replies, no lost threads, and built-in analytics to keep everyone aligned.
+              <strong>SendAlign</strong> keeps team email clear, synced, and on-track — no duplicate replies, no lost threads,
+              and built-in analytics to keep everyone aligned.
             </p>
 
             <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
-              <a
-                href="#join"
-                style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #0000", fontWeight: 600, display: "inline-block" }}
-              >
-                Join the Waitlist →
-              </a>
-              <a
-                href="#how-it-works"
-                style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #ddd", fontWeight: 600, display: "inline-block" }}
-              >
-                How it works
-              </a>
+              <a href="#join" style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #0000", fontWeight: 600, display: "inline-block" }}>Join the Waitlist →</a>
+              <a href="#how-it-works" style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #ddd", fontWeight: 600, display: "inline-block" }}>How it works</a>
             </div>
 
             <div style={{ marginTop: 36 }}>
@@ -68,7 +58,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* JOIN WAITLIST — MailerLite Universal Embed */}
+      {/* JOIN WAITLIST — MailerLite Universal Embed (with proper init) */}
       <section id="join" aria-label="Join the waitlist" style={{ padding: "56px 0", background: "var(--bg-subtle, #fafafa)" }}>
         <div className="container" style={{ maxWidth: 720, margin: "0 auto", padding: "0 20px" }}>
           <h2 style={{ textAlign: "center", fontSize: 28, marginBottom: 10 }}>Join the SendAlign waitlist</h2>
@@ -76,30 +66,22 @@ export default function HomePage() {
             Be first in line for early access and help shape the roadmap.
           </p>
 
-          {/* Universal embed auto-renders the form; replace data-site / data-form if MailerLite gives you new IDs */}
           <div id="ml-embed" style={{ background: "#fff", border: "1px solid #eee", borderRadius: 12, padding: 20 }}>
+            {/* MailerLite will auto-inject the form into this container */}
             <div className="ml-embedded" data-form="162292314122749781"></div>
-            <noscript>
-              <p style={{ color: "#777" }}>
-                JavaScript is required to load the signup form. Please email <a href="mailto:info@sendalign.com">info@sendalign.com</a>.
-              </p>
-            </noscript>
           </div>
 
-          {/* Load Universal script once per page; it finds .ml-embedded and injects the form */}
-          <Script
-            src="https://assets.mailerlite.com/js/universal.js"
-            data-site="1707319"
-            defer
-            strategy="afterInteractive"
-          />
+          {/* Load Universal script */}
+          <Script src="https://assets.mailerlite.com/js/universal.js" strategy="afterInteractive" />
+          {/* Initialize with your Site ID */}
+          <Script id="ml-init" strategy="afterInteractive">
+            {`window.ml = window.ml || function(){(ml.q=ml.q||[]).push(arguments)}; ml('account','1707319');`}
+          </Script>
 
-          {/* Fire Plausible on either ML event name just to be safe */}
+          {/* Plausible bridge for MailerLite success (two event names for safety) */}
           <Script id="ml-plausible-bridge" strategy="afterInteractive">
             {`
-              function sendPlausible() {
-                if (window.plausible) { window.plausible('join_waitlist'); }
-              }
+              function sendPlausible(){ if(window.plausible){ window.plausible('join_waitlist'); } }
               window.addEventListener('ml_webform_success', sendPlausible);
               window.addEventListener('ml_form_success', sendPlausible);
             `}
