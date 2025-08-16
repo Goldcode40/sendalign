@@ -1,70 +1,75 @@
 // app/layout.tsx
-import "./globals.css";
 import type { Metadata } from "next";
 import Script from "next/script";
+import "./globals.css";
+
+const siteUrl = "https://sendalign.vercel.app"; // swap to https://sendalign.com once the custom domain is live
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://sendalign.vercel.app"),
+  metadataBase: new URL(siteUrl),
   title: {
-    default: "SendAlign",
-    template: "%s • SendAlign",
+    default: "SendAlign — Inbox Deliverability & Compliance Copilot",
+    template: "%s · SendAlign",
   },
-  description: "Keep team email clear, synced, and on-track — without duplicate replies or lost threads.",
-  alternates: {
-    canonical: "/",
-  },
-  icons: {
-    // Classic favicon served from /public
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    // App icon for modern browsers / iOS
-    apple: "/icon.png",
-  },
+  description:
+    "Keep your emails in inbox — not spam. SendAlign audits & fixes SPF, DKIM, DMARC, adds RFC-8058 one-click unsubscribe, and monitors Gmail/Yahoo spam-rate thresholds (<0.3%).",
+  keywords: [
+    "SPF",
+    "DKIM",
+    "DMARC",
+    "one-click unsubscribe",
+    "RFC 8058",
+    "Gmail bulk sender rules",
+    "Yahoo sender requirements",
+    "email deliverability",
+    "Google Postmaster Tools",
+  ],
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "SendAlign",
-    description:
-      "Keep team email clear, synced, and on-track — without duplicate replies or lost threads.",
-    url: "https://sendalign.vercel.app",
+    type: "website",
+    url: "/",
     siteName: "SendAlign",
+    title: "SendAlign — Inbox Deliverability & Compliance Copilot",
+    description:
+      "Automate SPF, DKIM, DMARC, one-click unsubscribe, and Postmaster monitoring so you stay under 0.3% spam complaints.",
     images: [
       {
-        url: "/dashboard-mock.png", // replace with a real image when ready
+        url: "/dashboard-mock.png",
         width: 1200,
         height: 630,
-        alt: "SendAlign dashboard",
+        alt: "SendAlign compliance dashboard (SPF/DKIM/DMARC & spam-rate monitoring)",
       },
     ],
-    type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "SendAlign",
+    title: "SendAlign — Inbox Deliverability & Compliance Copilot",
     description:
-      "Keep team email clear, synced, and on-track — without duplicate replies or lost threads.",
+      "Automate SPF, DKIM, DMARC, one-click unsubscribe, and Postmaster monitoring so you stay under 0.3% spam complaints.",
     images: ["/dashboard-mock.png"],
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/icon.png", // lives in /app or /public depending on your setup; both are fine for Next metadata
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        {/* Extra compatibility links (Next will dedupe with metadata icons) */}
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/icon.png" />
-
-        {/* Viewport for responsive layout */}
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-        {/* Plausible analytics (tagged events build) */}
-        {/* If you switch to a custom domain later, change data-domain to e.g. sendalign.com */}
+    <html lang="en">
+      <body>
+        {children}
+        {/* Plausible analytics */}
         <Script
           defer
-          data-domain="sendalign.vercel.app"
+          data-domain="sendalign.vercel.app" // change to your custom domain when live
           src="https://plausible.io/js/script.tagged-events.js"
         />
-      </head>
-      <body>{children}</body>
+      </body>
     </html>
   );
 }
