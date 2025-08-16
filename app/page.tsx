@@ -22,11 +22,8 @@ function SignupBox() {
         body: JSON.stringify({ email }),
       });
       const data = await res.json();
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || "Failed to subscribe");
-      }
+      if (!res.ok || !data?.ok) throw new Error(data?.error || "Failed to subscribe");
       setDone(true);
-      // Fire Plausible only on confirmed success
       if (typeof window !== "undefined" && (window as any).plausible) {
         (window as any).plausible("join_waitlist");
       }
@@ -103,37 +100,25 @@ export default function HomePage() {
         <div className="container" style={{ maxWidth: 980, margin: "0 auto", padding: "0 20px" }}>
           <div style={{ textAlign: "center" }}>
             <h1 style={{ fontSize: "42px", lineHeight: 1.1, margin: "0 0 16px" }}>
-              Your inbox deserves order, not chaos.
+              Keep your emails in inbox — not spam.
             </h1>
-            <p style={{ fontSize: "18px", color: "var(--muted, #555)", margin: "0 auto 28px", maxWidth: 720 }}>
-              <strong>SendAlign</strong> keeps team email clear, synced, and on-track — no duplicate replies,
-              no lost threads, and built-in analytics to keep everyone aligned.
+            <p style={{ fontSize: "18px", color: "var(--muted, #555)", margin: "0 auto 28px", maxWidth: 760 }}>
+              <strong>SendAlign</strong> is a deliverability & compliance copilot that audits and fixes
+              <strong> SPF</strong>, <strong>DKIM</strong>, and <strong>DMARC</strong>, adds
+              RFC-8058 one-click unsubscribe, and monitors Gmail/Yahoo spam thresholds so you stay
+              under <strong>0.3%</strong>.
             </p>
 
             <div style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
               <a
                 href="#join"
-                style={{
-                  padding: "12px 18px",
-                  borderRadius: 8,
-                  textDecoration: "none",
-                  border: "1px solid #0000",
-                  fontWeight: 600,
-                  display: "inline-block",
-                }}
+                style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #0000", fontWeight: 600, display: "inline-block" }}
               >
                 Join the Waitlist →
               </a>
               <a
                 href="#how-it-works"
-                style={{
-                  padding: "12px 18px",
-                  borderRadius: 8,
-                  textDecoration: "none",
-                  border: "1px solid #ddd",
-                  fontWeight: 600,
-                  display: "inline-block",
-                }}
+                style={{ padding: "12px 18px", borderRadius: 8, textDecoration: "none", border: "1px solid #ddd", fontWeight: 600, display: "inline-block" }}
               >
                 How it works
               </a>
@@ -142,15 +127,8 @@ export default function HomePage() {
             <div style={{ marginTop: 36 }}>
               <img
                 src="/dashboard-mock.png"
-                alt="SendAlign dashboard mockup"
-                style={{
-                  width: "100%",
-                  maxWidth: 960,
-                  height: "auto",
-                  borderRadius: 12,
-                  border: "1px solid #eee",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                }}
+                alt="SendAlign compliance dashboard: SPF/DKIM/DMARC checks and spam-rate monitoring"
+                style={{ width: "100%", maxWidth: 960, height: "auto", borderRadius: 12, border: "1px solid #eee", boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
               />
             </div>
           </div>
@@ -162,21 +140,33 @@ export default function HomePage() {
         <div className="container" style={{ maxWidth: 980, margin: "0 auto", padding: "0 20px" }}>
           <h2 style={{ textAlign: "center", fontSize: 28, marginBottom: 28 }}>How SendAlign works</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20 }}>
-            <HowCard icon="🔌" title="Connect your email" text="Works with Gmail & Outlook. Get started in minutes." />
-            <HowCard icon="💬" title="Collaborate clearly" text="Shared context means no duplicate replies or lost threads." />
-            <HowCard icon="📈" title="Stay aligned" text="Lightweight analytics & reminders keep everyone on the same page." />
+            <HowCard
+              icon="🔎"
+              title="Audit your domain"
+              text="Detect SPF/DKIM/DMARC alignment, rDNS/TLS/BIMI, and List-Unsubscribe headers. Clear pass/fail checks."
+            />
+            <HowCard
+              icon="🛠️"
+              title="Fix with guided steps"
+              text="Generate copy-paste DNS records, add RFC-8058 one-click unsubscribe, validate changes instantly."
+            />
+            <HowCard
+              icon="📈"
+              title="Monitor & alert"
+              text="Pull Gmail Postmaster spam rate & reputation; warn when you trend over 0.3% so you can course-correct."
+            />
           </div>
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
+      {/* TESTIMONIALS (placeholders) */}
       <section id="testimonials" aria-label="Testimonials" style={{ padding: "48px 0" }}>
         <div className="container" style={{ maxWidth: 980, margin: "0 auto", padding: "0 20px" }}>
           <h2 style={{ textAlign: "center", fontSize: 28, marginBottom: 22 }}>What early users say</h2>
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 16 }}>
-            <li style={quoteStyle}>“Finally — no more stepping on each other’s email replies.”</li>
-            <li style={quoteStyle}>“SendAlign feels like Slack for email, but without the noise.”</li>
-            <li style={quoteStyle}>“Keeps our client comms sharp. Total game-changer.”</li>
+            <li style={quoteStyle}>“Setup took 10 minutes—DMARC finally aligned.”</li>
+            <li style={quoteStyle}>“Postmaster alerts caught a spike before it became a problem.”</li>
+            <li style={quoteStyle}>“One-click unsubscribe was the missing piece for Gmail compliance.”</li>
           </ul>
         </div>
       </section>
@@ -188,7 +178,6 @@ export default function HomePage() {
           <p style={{ textAlign: "center", color: "var(--muted, #555)", marginBottom: 24 }}>
             Be first in line for early access and help shape the roadmap.
           </p>
-
           <SignupBox />
         </div>
       </section>
@@ -199,6 +188,7 @@ export default function HomePage() {
           <Link href="/about" style={footerLink}>About</Link>
           <a href="mailto:info@sendalign.com" style={footerLink}>Contact</a>
           <Link href="/privacy" style={footerLink}>Privacy</Link>
+          <Link href="/legal/dpa" style={footerLink}>DPA</Link>
         </div>
         <div style={{ textAlign: "center", marginTop: 10, color: "#888", fontSize: 13 }}>
           © {new Date().getFullYear()} SendAlign. All rights reserved.
