@@ -1,14 +1,27 @@
-import "./globals.css";
+// app/layout.tsx
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import Script from "next/script";
-
-const inter = Inter({ subsets: ["latin"] });
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "SendAlign — Inbox Deliverability & Compliance",
   description:
-    "Keep your emails in inbox — not spam. SendAlign audits SPF, DKIM, DMARC and more.",
+    "Audits SPF, DKIM, DMARC, adds one-click unsubscribe, and monitors spam-rate thresholds so you stay under 0.3%.",
+  metadataBase: new URL("https://sendalign.com"),
+  openGraph: {
+    title: "SendAlign",
+    description:
+      "Inbox deliverability & compliance made simple.",
+    url: "https://sendalign.com",
+    siteName: "SendAlign",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SendAlign",
+    description: "Inbox deliverability & compliance made simple.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
@@ -16,27 +29,37 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const GA_ID = process.env.NEXT_PUBLIC_GA_ID; // e.g. G-G7K53K2LK9
+
   return (
     <html lang="en">
       <head>
-        {/* Google Tag Manager / Google Ads */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-G7K53K2LK9"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
+        {/* GA4 (loads only if NEXT_PUBLIC_GA_ID is set) */}
+        {GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_ID}', { page_path: window.location.pathname });
+              `}
+            </Script>
+          </>
+        )}
 
-            gtag('config', 'G-G7K53K2LK9');
-          `}
-        </Script>
+        {/* MailerLite embed */}
+        <Script
+          src="https://groot.mailerlite.com/js/w/webforms.min.js"
+          strategy="afterInteractive"
+          onLoad={() => console.log("MailerLite script loaded ✅")}
+        />
       </head>
-      <body className={inter.className}>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
