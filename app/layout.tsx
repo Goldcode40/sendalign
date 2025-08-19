@@ -10,8 +10,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://sendalign.com"),
   openGraph: {
     title: "SendAlign",
-    description:
-      "Inbox deliverability & compliance made simple.",
+    description: "Inbox deliverability & compliance made simple.",
     url: "https://sendalign.com",
     siteName: "SendAlign",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
@@ -24,17 +23,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const GA_ID = process.env.NEXT_PUBLIC_GA_ID; // e.g. G-G7K53K2LK9
 
   return (
     <html lang="en">
       <head>
-        {/* GA4 (loads only if NEXT_PUBLIC_GA_ID is set) */}
+        {/* GA4 */}
         {GA_ID && (
           <>
             <Script
@@ -52,11 +47,10 @@ export default function RootLayout({
           </>
         )}
 
-        {/* MailerLite embed */}
+        {/* MailerLite (no onLoad handler) */}
         <Script
           src="https://groot.mailerlite.com/js/w/webforms.min.js"
           strategy="afterInteractive"
-          onLoad={() => console.log("MailerLite script loaded ✅")}
         />
       </head>
       <body>{children}</body>
