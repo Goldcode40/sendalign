@@ -4,7 +4,6 @@ import Script from "next/script";
 import "./globals.css";
 
 const siteUrl = "https://sendalign.com";
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "G-7K53K2LK9"; // fall back so we can verify
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -16,10 +15,15 @@ export const metadata: Metadata = {
     "Keep your emails in inbox — not spam. SendAlign audits & fixes SPF, DKIM, and DMARC, adds RFC-8058 one-click unsubscribe, and monitors Gmail/Yahoo spam-rate thresholds (<0.3%).",
   alternates: { canonical: "/" },
   keywords: [
-    "SPF", "DKIM", "DMARC",
-    "one-click unsubscribe", "RFC 8058",
-    "Gmail bulk sender rules", "Yahoo sender requirements",
-    "email deliverability", "Google Postmaster Tools",
+    "SPF",
+    "DKIM",
+    "DMARC",
+    "one-click unsubscribe",
+    "RFC 8058",
+    "Gmail bulk sender rules",
+    "Yahoo sender requirements",
+    "email deliverability",
+    "Google Postmaster Tools",
   ],
   openGraph: {
     type: "website",
@@ -29,7 +33,12 @@ export const metadata: Metadata = {
     description:
       "Automate SPF, DKIM, DMARC, one-click unsubscribe, and Postmaster monitoring so you stay under 0.3% spam complaints.",
     images: [
-      { url: "/dashboard-mock.png", width: 1200, height: 630, alt: "SendAlign dashboard" },
+      {
+        url: "/dashboard-mock.png",
+        width: 1200,
+        height: 630,
+        alt: "SendAlign dashboard",
+      },
     ],
   },
   twitter: {
@@ -49,26 +58,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
 
-        {/* --- Plausible (working) --- */}
+        {/* Plausible (kept) */}
         <Script
           defer
           data-domain="sendalign.com"
           src="https://plausible.io/js/script.tagged-events.js"
         />
-
-        {/* --- GA4 (must be afterInteractive and in body) --- */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-          strategy="afterInteractive"
-        />
-        <Script id="ga-init" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GA_ID}', { anonymize_ip: true });
-          `}
-        </Script>
       </body>
     </html>
   );
